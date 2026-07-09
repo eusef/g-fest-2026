@@ -34,7 +34,9 @@
     getNow: function () {
       return (typeof window !== 'undefined' && window.__NOW__) ? window.__NOW__ : new Date();
     },
-    toggleFav: toggleFav
+    toggleFav: toggleFav,
+    exportFavorites: exportFavorites,
+    importText: importFavoritesFromText
   };
   window.App = App;
 
@@ -112,6 +114,122 @@
       nodes[i].setAttribute('aria-label', (on ? 'Unstar ' : 'Star ') + title);
       nodes[i].textContent = on ? '★' : '☆';
     }
+  }
+
+  /* --------------------------------------------- favorites: backup / share */
+
+  function plural(n) { return n === 1 ? '' : 's'; }
+
+  // Pull a clean id list out of an imported payload. Accepts either the wrapped
+  // export object ({ favorites: [...] }) or a bare array of ids, so a hand-edited
+  // or older file still imports. Returns null when the shape is unrecognizable
+  // (caller warns), [] when it is simply empty. Drops non-string/blank/dupes.
+  function extractFavIds(parsed) {
+    var arr = Array.isArray(parsed) ? parsed
+      : (parsed && Array.isArray(parsed.favorites)) ? parsed.favorites
+      : null;
+    if (!arr) return null;
+    var out = [], seen = {};
+    for (var i = 0; i < arr.length; i++) {
+      var v = arr[i];
+      if (typeof v === 'string' && v && !seen[v]) { seen[v] = true; out.push(v); }
+    }
+    return out;
+  }
+
+  function exportFavorites() {
+    var ids = Array.from(App.favorites);
+    if (!ids.length) { toast('Nothing starred yet to export.'); return; }
+    var payload = {
+      app: 'gfest-pocket-schedule',
+      kind: 'favorites',
+      version: 1,
+      event: App.data ? App.data.meta.event : 'G-FEST',
+      exported: new Date().toISOString(),
+      favorites: ids
+    };
+    var json = JSON.stringify(payload, null, 2);
+    var filename = 'gfest-2026-my-schedule.json';
+
+    // Prefer the native share sheet on mobile (the natural way to hand this to
+    // someone); fall back to a plain file download everywhere else.
+    try {
+      if (navigator.canShare && typeof File === 'function') {
+        var file = new File([json], filename, { type: 'application/json' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'My G-FEST Schedule' })
+            .then(function () { toast('Schedule shared.'); })
+            .catch(function (err) {
+              if (err && err.name === 'AbortError') return; // user dismissed the sheet
+              downloadJson(json, filename, ids.length);
+            });
+          return;
+        }
+      }
+    } catch (e) { /* fall through to download */ }
+    downloadJson(json, filename, ids.length);
+  }
+
+  function downloadJson(json, filename, count) {
+    var url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    var a = el('a', { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast('Exported ' + count + ' starred event' + plural(count) + '.');
+  }
+
+  function importFavoritesFromText(text) {
+    var parsed;
+    try { parsed = JSON.parse(text); }
+    catch (e) { toast("Couldn't read that file — it isn't valid JSON."); return; }
+
+    var ids = extractFavIds(parsed);
+    if (ids === null) { toast("That file doesn't look like a G-FEST export."); return; }
+    if (!ids.length) { toast('That file has no starred events.'); return; }
+
+    var added = 0;
+    ids.forEach(function (id) {
+      if (!App.favorites.has(id)) { App.favorites.add(id); added++; }
+    });
+    saveFavorites();
+    render(); // re-render My Schedule with the merged list
+
+    if (!added) toast('Already up to date — nothing new added.');
+    else toast('Added ' + added + ' event' + plural(added) + ' to My Schedule.');
+  }
+
+  function backupSection() {
+    var exportBtn = el('button', { class: 'btn btn--ghost', type: 'button', text: 'Export' });
+    exportBtn.addEventListener('click', exportFavorites);
+
+    // Hidden picker the Import button triggers; reset after each read so the same
+    // file can be chosen twice in a row.
+    var fileInput = el('input', {
+      type: 'file', accept: '.json,application/json', hidden: 'hidden', 'aria-hidden': 'true'
+    });
+    fileInput.addEventListener('change', function () {
+      var f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () { importFavoritesFromText(String(reader.result)); };
+      reader.onerror = function () { toast("Couldn't read that file."); };
+      reader.readAsText(f);
+      fileInput.value = '';
+    });
+
+    var importBtn = el('button', { class: 'btn btn--ghost', type: 'button', text: 'Import' });
+    importBtn.addEventListener('click', function () { fileInput.click(); });
+
+    var box = el('div', { class: 'backup' }, [
+      el('p', {
+        class: 'backup__help',
+        text: 'Save your starred picks to a file to back them up or share, or import a list someone sent you.'
+      }),
+      el('div', { class: 'backup__actions' }, [exportBtn, importBtn, fileInput])
+    ]);
+    return section('Back up & share', box);
   }
 
   /* ----------------------------------------------------------- components */
@@ -505,19 +623,20 @@
     if (!favs.length) {
       view.appendChild(emptyCard(
         'No starred events yet.',
-        'Tap ☆ on any event to build your personal schedule.',
+        'Tap ☆ on any event to build your personal schedule — or import a list someone shared below.',
         el('a', { class: 'btn', href: '#/browse', text: 'Browse the schedule' })
       ));
-      return;
+    } else {
+      conDays().forEach(function (day) {
+        var dayEvents = N.eventsForDay(favs, day.date);
+        if (!dayEvents.length) return;
+        var s = section(day.label);
+        renderGroupsInto(s, N.groupByStart(dayEvents, tz()));
+        view.appendChild(s);
+      });
     }
 
-    conDays().forEach(function (day) {
-      var dayEvents = N.eventsForDay(favs, day.date);
-      if (!dayEvents.length) return;
-      var s = section(day.label);
-      renderGroupsInto(s, N.groupByStart(dayEvents, tz()));
-      view.appendChild(s);
-    });
+    view.appendChild(backupSection());
   }
 
   /* ---------------------------------------------------------------- routing */
