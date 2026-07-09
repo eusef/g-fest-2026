@@ -336,6 +336,25 @@ button {
   margin-bottom: 8px;
 }
 
+/* --------------------------------------------------------------- Back up & share */
+.backup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.backup__help {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+.backup__actions {
+  display: flex;
+  gap: 10px;
+}
+.backup__actions .btn { flex: 1 1 0; }
+
 /* --------------------------------------------------------------- Day tabs */
 .daytabs {
   display: flex;
