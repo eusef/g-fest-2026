@@ -4,7 +4,7 @@
  */
 'use strict';
 
-var CACHE_VERSION = 'gfest-v1';
+var CACHE_VERSION = 'gfest-v2';
 
 var SHELL = [
   '/',
@@ -15,7 +15,11 @@ var SHELL = [
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/apple-touch-icon.png',
+  // Precache the data too, so the app has events offline after a single load
+  // (before this, schedule.json was only cached via SWR once the SW took control
+  // on a later reload — the first-load-then-offline path showed an empty app).
+  '/data/schedule.json'
 ];
 
 self.addEventListener('install', function (event) {
