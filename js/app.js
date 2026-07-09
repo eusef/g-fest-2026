@@ -346,15 +346,30 @@
     return section('Open now', chips);
   }
 
-  // Cinematic hero strip shown above Happening Now — the single treated-photo
-  // moment; list surfaces below stay clean. Decorative, so aria-hidden.
-  function nowBanner() {
+  // Cinematic hero strip, always shown atop the Now screen so there's a visual
+  // anchor even off-hours. The label + status dot adapt to the con lifecycle:
+  // ember pulse when live, a calm atomic dot otherwise. Decorative, so aria-hidden.
+  function nowBanner(state, events, now) {
+    var live = state === 'live';
+    var label;
+    if (live) {
+      label = 'Now playing at G-FEST';
+    } else if (state === 'pre') {
+      var first = N.nextUpcomingAny(events, now);
+      label = first
+        ? 'Starts ' + weekday(N.parseInstant(first.start)) + ' · ' + N.formatTime(N.parseInstant(first.start), tz())
+        : App.data.meta.event;
+    } else if (state === 'post') {
+      label = 'See you next year';
+    } else { // between
+      label = 'Back with more soon';
+    }
     return el('div', { class: 'now-banner', 'aria-hidden': 'true' }, [
       el('div', { class: 'now-banner__img' }),
       el('div', { class: 'now-banner__scrim' }),
       el('div', { class: 'now-banner__label' }, [
-        el('span', { class: 'live-dot' }),
-        'Now playing at G-FEST'
+        el('span', { class: live ? 'live-dot' : 'status-dot' }),
+        label
       ])
     ]);
   }
@@ -386,6 +401,8 @@
     var now = App.getNow();
     var state = N.conState(events, now);
 
+    view.appendChild(nowBanner(state, events, now)); // persistent hero, all states
+
     if (state === 'pre') {
       var first = N.nextUpcomingAny(events, now);
       var lead = App.data.meta.event + ' starts ' +
@@ -413,7 +430,6 @@
     } else { // live
       var hn = N.happeningNow(events, now);
       if (hn.length) {
-        view.appendChild(nowBanner()); // the one hero moment — treated photo + grain
         var hs = section('Happening Now');
         hs.classList.add('section--live');
         hn.forEach(function (e) { hs.appendChild(eventCard(e, { live: true })); });

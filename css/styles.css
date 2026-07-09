@@ -325,6 +325,15 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 0 8px var(--ember);
   animation: livePulse 1.5s ease-in-out infinite;
 }
+/* Calm status dot for the banner when the con isn't live (no pulse) */
+.status-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--atomic-glow);
+}
 
 /* ----------------------------------------------------------------- Cards */
 .card {
