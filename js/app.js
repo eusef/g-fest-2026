@@ -776,13 +776,21 @@
 
   // "Add to Home" affordance. Chromium desktop/Android fire beforeinstallprompt
   // when the app is installable and not yet installed; we stash it and reveal an
-  // Install button that drives the native dialog. Safari never fires this event,
-  // so the button simply stays hidden there (install is manual via the browser).
+  // Install button that drives the native dialog. iOS Safari never fires that
+  // event and has no install API, so there we show the button too but explain the
+  // manual Share > Add to Home Screen flow when it is tapped.
   var deferredInstall = null;
 
   function isStandalone() {
     return window.matchMedia('(display-mode: standalone)').matches ||
            window.navigator.standalone === true; // iOS Safari
+  }
+
+  function isIOS() {
+    var ua = navigator.userAgent || '';
+    // iPadOS 13+ reports as "MacIntel"; touch points disambiguate it from a Mac.
+    return /iPad|iPhone|iPod/.test(ua) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
   function wireInstall() {
@@ -796,15 +804,22 @@
       btn.hidden = false;
     });
 
+    // No beforeinstallprompt on iOS — reveal the button so the manual path is
+    // discoverable; the click handler falls through to the instructions sheet.
+    if (isIOS()) btn.hidden = false;
+
     btn.addEventListener('click', function () {
-      if (!deferredInstall) return;
-      var prompt = deferredInstall;
-      deferredInstall = null;   // a prompt event can only be used once
-      btn.hidden = true;        // a fresh beforeinstallprompt re-reveals it later
-      prompt.prompt();
-      prompt.userChoice.then(function (choice) {
-        if (choice && choice.outcome === 'accepted') toast('Installing G-FEST…');
-      });
+      if (deferredInstall) {
+        var prompt = deferredInstall;
+        deferredInstall = null; // a prompt event can only be used once
+        btn.hidden = true;      // a fresh beforeinstallprompt re-reveals it later
+        prompt.prompt();
+        prompt.userChoice.then(function (choice) {
+          if (choice && choice.outcome === 'accepted') toast('Installing G-FEST…');
+        });
+        return;
+      }
+      showInstallHelp(); // iOS (or a browser with no native prompt) — explain it
     });
 
     window.addEventListener('appinstalled', function () {
@@ -812,6 +827,49 @@
       btn.hidden = true;
       toast('G-FEST installed — open it any time, even offline.');
     });
+  }
+
+  // Dismissible sheet explaining the manual Add-to-Home-Screen steps. innerHTML is
+  // safe here: the markup is fixed constant copy, never user input.
+  function showInstallHelp() {
+    if (document.getElementById('install-help')) return; // already open
+
+    var shareIcon =
+      '<svg class="install-help__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M12 3v11"/><path d="M8.5 6.5 12 3l3.5 3.5"/>' +
+      '<path d="M7 10.5H6A1.5 1.5 0 0 0 4.5 12v7A1.5 1.5 0 0 0 6 20.5h12A1.5 1.5 0 0 0 19.5 19v-7A1.5 1.5 0 0 0 18 10.5h-1"/></svg>';
+
+    var steps = isIOS()
+      ? '<li>Tap the Share button ' + shareIcon + ' in Safari’s toolbar.</li>' +
+        '<li>Scroll down and tap <b>Add to Home Screen</b>.</li>' +
+        '<li>Tap <b>Add</b> — G-FEST opens full-screen and works offline.</li>'
+      : '<li>Open your browser’s menu.</li>' +
+        '<li>Choose <b>Install app</b> or <b>Add to Home Screen</b>.</li>';
+
+    var overlay = el('div', { class: 'install-help', id: 'install-help' });
+    overlay.innerHTML =
+      '<div class="install-help__card" role="dialog" aria-modal="true" aria-labelledby="install-help-title">' +
+        '<h2 class="install-help__title" id="install-help-title">Add G-FEST to your Home Screen</h2>' +
+        '<p class="install-help__lead">Get full-screen, offline access — no App Store needed.</p>' +
+        '<ol class="install-help__steps">' + steps + '</ol>' +
+        '<button type="button" class="btn install-help__done">Got it</button>' +
+      '</div>';
+
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+      if (btnRef()) btnRef().focus();
+    }
+    function btnRef() { return document.getElementById('install-btn'); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    overlay.querySelector('.install-help__done').addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+
+    document.body.appendChild(overlay);
+    overlay.querySelector('.install-help__done').focus();
   }
 
   /* --------------------------------------------------------------- lifecycle */
