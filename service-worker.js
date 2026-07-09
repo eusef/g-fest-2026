@@ -4,7 +4,7 @@
  */
 'use strict';
 
-var CACHE_VERSION = 'gfest-v3';
+var CACHE_VERSION = 'gfest-v4';
 
 var SHELL = [
   '/',
