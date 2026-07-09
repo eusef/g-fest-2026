@@ -764,6 +764,25 @@ button { font-family: inherit; cursor: pointer; }
 }
 .toast[hidden] { display: none; }
 
+/* --------------------------------------------------------------- Footer */
+.app-footer {
+  max-width: var(--maxw);
+  margin: 4px auto 0;
+  padding: 20px 0 4px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.app-footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  min-height: var(--tap);
+}
+.app-footer__link:hover { color: var(--text); }
+.app-footer__link svg { display: block; }
+
 /* --------------------------------------------------------------- Motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
