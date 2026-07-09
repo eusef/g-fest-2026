@@ -4,7 +4,7 @@
  */
 'use strict';
 
-var CACHE_VERSION = 'gfest-v2';
+var CACHE_VERSION = 'gfest-v3';
 
 var SHELL = [
   '/',
@@ -13,6 +13,9 @@ var SHELL = [
   '/js/now.js',
   '/js/app.js',
   '/manifest.webmanifest',
+  '/fonts/oswald-latin.woff2',
+  '/assets/banner.jpg',
+  '/assets/grain.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',

@@ -12,11 +12,13 @@
 
   // Canonical track ordering for the filter UI; unknown tracks sort after, alpha.
   var TRACK_ORDER = ['Panels', 'Model', 'Gaming', 'Cosplay', 'Screening', 'Exhibit', 'Event', 'Registration'];
+  // Muted-steel track palette (matches css/styles.css --track-* tokens). The pill
+  // label carries the track name; color stays quiet against the dark surfaces.
   var TRACK_COLORS = {
-    Panels: '#4C8DFF', Model: '#A66BFF', Gaming: '#22C55E', Cosplay: '#EC4899',
-    Screening: '#F59E0B', Exhibit: '#14B8A6', Event: '#FF5252', Registration: '#94A3B8'
+    Panels: '#6E93B8', Model: '#9182B0', Gaming: '#6F9576', Cosplay: '#B67E92',
+    Screening: '#BE9A61', Exhibit: '#5E9AA1', Event: '#CA6B49', Registration: '#7E8894'
   };
-  var TRACK_DEFAULT = '#64748B';
+  var TRACK_DEFAULT = '#6D7885';
 
   // Session-only UI state (need not persist).
   var browseDay = null;
@@ -120,7 +122,7 @@
     var c = trackColor(track);
     return el('span', {
       class: 'pill',
-      style: 'color:' + c + ';background:' + hexToRgba(c, 0.14),
+      style: 'color:' + c + ';background:' + hexToRgba(c, 0.16),
       text: track
     });
   }
@@ -146,9 +148,11 @@
 
   function eventCard(e, opts) {
     opts = opts || {};
+    var mod = opts.live ? ' card--live' : (opts.first ? ' card--first' : '');
     var card = el('article', {
-      class: 'card' + (opts.first ? ' card--first' : ''),
-      style: 'border-left-color:' + trackColor(e.track)
+      class: 'card' + mod,
+      // The inset track rail (.card::before) reads its color from --rail.
+      style: '--rail:' + trackColor(e.track)
     });
     var body = el('a', { class: 'card__body', href: '#/event/' + encodeURIComponent(e.id) });
     body.appendChild(el('div', { class: 'card__time', text: N.formatTimeRange(e.start, e.end, tz()) }));
@@ -190,6 +194,19 @@
       ]));
     });
     return section('Open now', chips);
+  }
+
+  // Cinematic hero strip shown above Happening Now — the single treated-photo
+  // moment; list surfaces below stay clean. Decorative, so aria-hidden.
+  function nowBanner() {
+    return el('div', { class: 'now-banner', 'aria-hidden': 'true' }, [
+      el('div', { class: 'now-banner__img' }),
+      el('div', { class: 'now-banner__scrim' }),
+      el('div', { class: 'now-banner__label' }, [
+        el('span', { class: 'live-dot' }),
+        'Now playing at G-FEST'
+      ])
+    ]);
   }
 
   function emptyCard(lead, sub, action) {
@@ -246,8 +263,10 @@
     } else { // live
       var hn = N.happeningNow(events, now);
       if (hn.length) {
+        view.appendChild(nowBanner()); // the one hero moment — treated photo + grain
         var hs = section('Happening Now');
-        hn.forEach(function (e) { hs.appendChild(eventCard(e)); });
+        hs.classList.add('section--live');
+        hn.forEach(function (e) { hs.appendChild(eventCard(e, { live: true })); });
         view.appendChild(hs);
       }
       var next = N.upNext(events, now, tz());
