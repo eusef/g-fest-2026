@@ -293,7 +293,19 @@
       style: '--rail:' + trackColor(e.track)
     });
     var body = el('a', { class: 'card__body', href: '#/event/' + encodeURIComponent(e.id) });
-    body.appendChild(el('div', { class: 'card__time', text: N.formatTimeRange(e.start, e.end, tz()) }));
+    var timeText = N.formatTimeRange(e.start, e.end, tz());
+    if (opts.live) {
+      // Ember "LIVE" pill with a pulsing dot, sitting before the time.
+      body.appendChild(el('div', { class: 'card__timerow' }, [
+        el('span', { class: 'live-pill' }, [
+          el('span', { class: 'live-dot' }),
+          el('span', { text: 'Live' })
+        ]),
+        el('span', { class: 'card__time', text: timeText })
+      ]));
+    } else {
+      body.appendChild(el('div', { class: 'card__time', text: timeText }));
+    }
     body.appendChild(el('div', { class: 'card__title', text: e.title }));
     var meta = el('div', { class: 'card__meta' }, [
       el('span', { class: 'card__room', text: e.room }),

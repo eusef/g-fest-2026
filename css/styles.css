@@ -405,8 +405,34 @@ button { font-family: inherit; cursor: pointer; }
 }
 .card--live::before,
 .card--first::before { background: var(--ember); }
-.card--live .card__time,
 .card--first .card__time { color: var(--ember); }
+
+/* Live card time row: ember "LIVE" pill + bright time (matches design) */
+.card__timerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.card__timerow .card__time { margin-bottom: 0; color: var(--text); }
+.live-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 7px;
+  border-radius: 999px;
+  background: var(--ember-glow);
+  border: 1px solid rgba(234, 138, 60, 0.45);
+  color: var(--ember);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.live-pill .live-dot { width: 6px; height: 6px; }
 
 /* Star toggle */
 .star {
