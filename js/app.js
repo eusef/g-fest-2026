@@ -751,6 +751,48 @@
     });
   }
 
+  /* --------------------------------------------------------------- install */
+
+  // "Add to Home" affordance. Chromium desktop/Android fire beforeinstallprompt
+  // when the app is installable and not yet installed; we stash it and reveal an
+  // Install button that drives the native dialog. Safari never fires this event,
+  // so the button simply stays hidden there (install is manual via the browser).
+  var deferredInstall = null;
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true; // iOS Safari
+  }
+
+  function wireInstall() {
+    var btn = document.getElementById('install-btn');
+    if (!btn) return;
+    if (isStandalone()) return; // already installed — never prompt
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();       // suppress Chrome's mini-infobar; we drive it
+      deferredInstall = e;
+      btn.hidden = false;
+    });
+
+    btn.addEventListener('click', function () {
+      if (!deferredInstall) return;
+      var prompt = deferredInstall;
+      deferredInstall = null;   // a prompt event can only be used once
+      btn.hidden = true;        // a fresh beforeinstallprompt re-reveals it later
+      prompt.prompt();
+      prompt.userChoice.then(function (choice) {
+        if (choice && choice.outcome === 'accepted') toast('Installing G-FEST…');
+      });
+    });
+
+    window.addEventListener('appinstalled', function () {
+      deferredInstall = null;
+      btn.hidden = true;
+      toast('G-FEST installed — open it any time, even offline.');
+    });
+  }
+
   /* --------------------------------------------------------------- lifecycle */
 
   function tick() {
@@ -795,6 +837,7 @@
 
   function init() {
     wireRefresh();
+    wireInstall();
     window.addEventListener('hashchange', render);
     render();       // paints chrome + loading state immediately
     loadData();

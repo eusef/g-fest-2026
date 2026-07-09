@@ -22,9 +22,15 @@
   <header class="app-header">
     <div class="app-header__row">
       <h1 class="app-header__title">G-FEST 2026</h1>
-      <button id="refresh-btn" class="icon-btn" type="button" aria-label="Refresh schedule" title="Refresh schedule">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5A8 8 0 1 0 18 17"/><path d="M20 5v5h-5"/></svg>
-      </button>
+      <div class="app-header__actions">
+        <button id="install-btn" class="install-btn" type="button" hidden aria-label="Install G-FEST app for offline use" title="Install this app for offline use">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="M8 10.5l4 4 4-4"/><path d="M5 20h14"/></svg>
+          <span class="install-btn__label">Install</span>
+        </button>
+        <button id="refresh-btn" class="icon-btn" type="button" aria-label="Refresh schedule" title="Refresh schedule">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5A8 8 0 1 0 18 17"/><path d="M20 5v5h-5"/></svg>
+        </button>
+      </div>
     </div>
     <div class="app-header__meta">
       <span id="clock" class="app-header__clock"></span>
