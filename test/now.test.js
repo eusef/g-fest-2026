@@ -65,13 +65,15 @@ function D(iso) {
   });
 })();
 
-// --- Case 4: 3:00 AM Sat ---
+// --- Case 4: 3:00 AM Fri (a genuinely dead overnight window) ---
+// Note: Sat/Sun small hours are NOT dead — the film festival runs all night
+// (e.g. a 2:00-3:22 AM Sat screening), so the quiet overnight is Thu->Fri.
 (function () {
-  var now = D('2026-07-11T03:00:00-05:00');
+  var now = D('2026-07-10T03:00:00-05:00');
   assert(N.happeningNow(events, now).length === 0, 'C4 happeningNow empty at 3AM');
   assert(N.conState(events, now) === 'between', 'C4 conState is between');
   var nx = N.nextUpcomingAny(events, now);
-  assert(nx && nx.day === '2026-07-11', "C4 nextUpcomingAny is Saturday's first event");
+  assert(nx && nx.day === '2026-07-10', "C4 nextUpcomingAny is Friday's first event");
 })();
 
 // --- Case 5: Pre-con ---
