@@ -193,7 +193,7 @@ Deployment: static hosting (GitHub Pages recommended, free, HTTPS by default whi
 
 1. **Venue timezone confirm.** Assumed Central (America/Chicago, `-05:00` CDT) from G-FEST's usual Rosemont, IL venue. Confirm before shipping.
 2. **Icon/branding.** Need a 192px and 512px app icon. A simple kaiju-silhouette or "G" glyph is fine for v1; can be a placeholder.
-3. **Deploy target.** GitHub Pages assumed. Confirm the repo/host so the service worker scope and manifest `start_url` are set correctly.
+3. **Deploy target.** Cloudflare at `https://gfest.phils.pics`, served at **root scope** (`/`), with HTTPS provided by Cloudflare (required by the service worker). The manifest `start_url`/`scope` and the service worker scope are all `/`, so the app must be hosted at the domain root, not a subpath. (The subdomain still needs to be created before deploy.)
 
 ## 14. Build order (smallest shippable increments)
 
