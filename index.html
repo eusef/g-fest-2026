@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>G-FEST 2026 Pocket Schedule</title>
+  <meta name="description" content="Offline schedule for G-FEST 2026 — now, next, full 3-day, and your starred picks.">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0E1116" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="G-FEST">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#view">Skip to content</a>
+
+  <header class="app-header">
+    <div class="app-header__row">
+      <h1 class="app-header__title">G-FEST 2026</h1>
+      <button id="refresh-btn" class="icon-btn" type="button" aria-label="Refresh schedule" title="Refresh schedule">↻</button>
+    </div>
+    <div class="app-header__meta">
+      <span id="clock" class="app-header__clock"></span>
+      <span id="data-as-of" class="app-header__asof"></span>
+    </div>
+  </header>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <nav class="tabbar" aria-label="Primary">
+    <a class="tabbar__tab" href="#/now" data-route="#/now">
+      <span class="tabbar__icon" aria-hidden="true">◔</span>
+      <span class="tabbar__label">Now</span>
+    </a>
+    <a class="tabbar__tab" href="#/browse" data-route="#/browse">
+      <span class="tabbar__icon" aria-hidden="true">▤</span>
+      <span class="tabbar__label">Browse</span>
+    </a>
+    <a class="tabbar__tab" href="#/my" data-route="#/my">
+      <span class="tabbar__icon" aria-hidden="true">★</span>
+      <span class="tabbar__label">My Schedule</span>
+    </a>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/now.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
