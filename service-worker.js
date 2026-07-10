@@ -4,7 +4,7 @@
  */
 'use strict';
 
-var CACHE_VERSION = 'gfest-v11';
+var CACHE_VERSION = 'gfest-v13';
 
 var SHELL = [
   '/',
@@ -18,7 +18,12 @@ var SHELL = [
   '/assets/grain.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/maskable-192.png',
+  '/icons/maskable-512.png',
   '/icons/apple-touch-icon.png',
+  '/icons/icon.svg',
+  '/icons/favicon-32.png',
+  '/icons/favicon-16.png',
   // Precache the data too, so the app has events offline after a single load
   // (before this, schedule.json was only cached via SWR once the SW took control
   // on a later reload — the first-load-then-offline path showed an empty app).
@@ -28,10 +33,14 @@ var SHELL = [
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE_VERSION).then(function (cache) {
-      // addAll fails the whole install if any request 404s (e.g. missing icons).
-      // Cache resiliently so a missing asset never blocks offline for the rest.
+      // Cache resiliently: a missing asset (e.g. a 404 icon) never blocks offline
+      // for the rest. Fetch with cache:'reload' so precache always stores fresh
+      // files from the network, never a stale copy from the browser's HTTP cache
+      // (which can otherwise pin an old manifest/icon set across a redeploy).
       return Promise.all(SHELL.map(function (url) {
-        return cache.add(url).catch(function () { return null; });
+        return fetch(new Request(url, { cache: 'reload' }))
+          .then(function (res) { if (res && res.ok) return cache.put(url, res); })
+          .catch(function () { return null; });
       }));
     }).then(function () { return self.skipWaiting(); })
   );
